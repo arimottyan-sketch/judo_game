@@ -92,3 +92,7 @@ Fixed throw horizontal velocity being killed by immediate collision with the pla
 
 ## v0.3.5
 Added airborne smoke trails. Tomoe produces the longest/strongest-looking trail, Seoi medium, Osoto short, Ura almost none in the air.
+
+
+## v0.3.6
+Replaced long text HUD with compact in-engine keycap/action icons using CanvasLayer. Increased smoke size, opacity, lifetime, and spawn rate.

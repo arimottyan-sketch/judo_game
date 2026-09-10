@@ -71,11 +71,11 @@ func _physics_process(delta: float) -> void:
         if smoke_allowed and smoke_timer <= 0.0 and speed > 300.0:
             var interval := 0.075
             if throw_name == "TOMOE":
-                interval = 0.045
+                interval = 0.028
             elif throw_name == "SEOI":
-                interval = 0.060
+                interval = 0.042
             elif throw_name == "OSOTO":
-                interval = 0.085
+                interval = 0.060
 
             smoke_timer = interval
 

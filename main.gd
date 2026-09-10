@@ -3,6 +3,7 @@ extends Node2D
 const PlayerScript = preload("res://player.gd")
 const EnemyScript = preload("res://enemy.gd")
 const FxScript = preload("res://fx.gd")
+const HudScript = preload("res://hud.gd")
 
 var player
 var enemy_a
@@ -72,7 +73,7 @@ func spawn_smoke(pos: Vector2, direction: Vector2, power: float) -> void:
     var fx = FxScript.new()
     add_child(fx)
     fx.global_position = pos
-    fx.setup("smoke", direction, power, 0.42)
+    fx.setup("smoke", direction, power, 0.68)
 
 func spawn_impact(pos: Vector2, power: float) -> void:
     var fx = FxScript.new()
@@ -108,12 +109,13 @@ func _make_ground(pos: Vector2, size: Vector2) -> void:
     add_child(body)
 
 func _make_ui() -> void:
-    var label := Label.new()
-    label.position = Vector2(30, 20)
-    label.text = "TEST v0.3.3\nA/D MOVE | SPACE JUMP | J GRAB | R RESET\nWHILE GRABBING: HOLD DIRECTION THEN K\nBACK+K TOMOE | FORWARD+K OSOTO | DOWN+K SEOI | REAR: K URA"
-    label.add_theme_font_size_override("font_size", 18)
-    label.add_theme_color_override("font_color", Color(0.08, 0.10, 0.13))
-    add_child(label)
+    var layer := CanvasLayer.new()
+    layer.layer = 20
+    add_child(layer)
+
+    var hud = HudScript.new()
+    layer.add_child(hud)
+
 
 func _setup_input() -> void:
     _bind_keys("move_left", [KEY_A, KEY_LEFT])

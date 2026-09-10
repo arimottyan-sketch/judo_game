@@ -59,12 +59,12 @@ func _draw() -> void:
             )
 
         "smoke":
-            # Three soft-ish overlapping puffs.
-            var base_r := (7.0 + power * 2.2) * (0.75 + t * 1.25)
-            var alpha := 0.30 * fade
-            draw_circle(Vector2(-4, 1), base_r, Color(0.92, 0.92, 0.92, alpha))
-            draw_circle(Vector2(4, -2), base_r * 0.82, Color(0.86, 0.86, 0.86, alpha * 0.9))
-            draw_circle(Vector2(0, -7), base_r * 0.68, Color(1.0, 1.0, 1.0, alpha * 0.8))
+            # Larger, denser smoke puffs so the trail is unmistakable in browser play.
+            var base_r := (10.0 + power * 3.5) * (0.80 + t * 1.45)
+            var alpha := 0.58 * fade
+            draw_circle(Vector2(-6, 2), base_r, Color(0.90, 0.90, 0.90, alpha))
+            draw_circle(Vector2(5, -2), base_r * 0.90, Color(0.82, 0.82, 0.82, alpha * 0.92))
+            draw_circle(Vector2(0, -9), base_r * 0.74, Color(1.0, 1.0, 1.0, alpha * 0.86))
 
         "impact":
             var r := 12.0 + t * (40.0 + power * 12.0)
