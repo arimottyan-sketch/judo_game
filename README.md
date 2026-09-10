@@ -76,3 +76,7 @@ GitHubで一度だけ以下を設定します。
 
 ゲーム本体のライセンスは、正式公開前に決定します。
 Godot EngineはMIT Licenseで提供されています。
+
+
+## v0.3
+Throw-feel pass: unique trajectories/spin, launch burst, motion trails, impact rings/dust, camera shake, and short hit-stop.

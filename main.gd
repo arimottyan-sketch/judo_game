@@ -2,12 +2,21 @@ extends Node2D
 
 const PlayerScript = preload("res://player.gd")
 const EnemyScript = preload("res://enemy.gd")
+const FxScript = preload("res://fx.gd")
 
 var player
 var enemy
+var camera: Camera2D
+
+var shake_time := 0.0
+var shake_strength := 0.0
+var hitstop_active := false
 
 func _ready() -> void:
+    add_to_group("game_fx")
     _setup_input()
+    _setup_camera()
+
     _make_ground(Vector2(480, 500), Vector2(960, 80))
     _make_ground(Vector2(760, 410), Vector2(220, 24))
 
@@ -22,9 +31,61 @@ func _ready() -> void:
 
     _make_ui()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if Input.is_action_just_pressed("reset"):
+        Engine.time_scale = 1.0
         get_tree().reload_current_scene()
+        return
+
+    if shake_time > 0.0:
+        shake_time -= delta
+        var falloff := clamp(shake_time / 0.20, 0.0, 1.0)
+        camera.offset = Vector2(
+            randf_range(-shake_strength, shake_strength),
+            randf_range(-shake_strength, shake_strength)
+        ) * falloff
+    else:
+        camera.offset = camera.offset.lerp(Vector2.ZERO, min(1.0, 18.0 * delta))
+
+func _setup_camera() -> void:
+    camera = Camera2D.new()
+    camera.position = Vector2(480, 270)
+    camera.enabled = true
+    add_child(camera)
+
+func spawn_launch(pos: Vector2, direction: Vector2, power: float) -> void:
+    var fx = FxScript.new()
+    add_child(fx)
+    fx.global_position = pos
+    fx.setup("launch", direction, power, 0.16)
+
+func spawn_trail(pos: Vector2, direction: Vector2, power: float) -> void:
+    var fx = FxScript.new()
+    add_child(fx)
+    fx.global_position = pos
+    fx.setup("trail", direction, power, 0.16)
+
+func spawn_impact(pos: Vector2, power: float, is_slam: bool = false) -> void:
+    var fx = FxScript.new()
+    add_child(fx)
+    fx.global_position = pos
+    fx.setup("slam" if is_slam else "impact", Vector2.UP, power, 0.30)
+
+func request_shake(power: float) -> void:
+    shake_time = max(shake_time, 0.10 + 0.035 * power)
+    shake_strength = max(shake_strength, 3.0 + 4.2 * power)
+
+func request_hitstop(duration: float) -> void:
+    if hitstop_active:
+        return
+    _do_hitstop(duration)
+
+func _do_hitstop(duration: float) -> void:
+    hitstop_active = true
+    Engine.time_scale = 0.10
+    await get_tree().create_timer(duration, true, false, true).timeout
+    Engine.time_scale = 1.0
+    hitstop_active = false
 
 func _make_ground(pos: Vector2, size: Vector2) -> void:
     var body := StaticBody2D.new()
@@ -50,7 +111,7 @@ func _make_ground(pos: Vector2, size: Vector2) -> void:
 func _make_ui() -> void:
     var label := Label.new()
     label.position = Vector2(22, 18)
-    label.text = "A/D or ARROWS: MOVE    SPACE: JUMP    J: GRAB/RELEASE    R: RESET\nWHILE GRABBING: movement is locked / LEFT-RIGHT = KUZUSHI\nFRONT GRAB: BACK+K = TOMOE    FORWARD+K = OSOTO    DOWN+K = SEOI\nREAR GRAB: K = URA"
+    label.text = "A/D or ARROWS: MOVE    SPACE: JUMP    J: GRAB/RELEASE    R: RESET\nGRABBING: LEFT/RIGHT = KUZUSHI, NO WALKING\nFRONT: BACK+K TOMOE / FORWARD+K OSOTO / DOWN+K SEOI    REAR: K URA"
     label.add_theme_font_size_override("font_size", 18)
     label.add_theme_color_override("font_color", Color(0.08, 0.10, 0.13))
     add_child(label)

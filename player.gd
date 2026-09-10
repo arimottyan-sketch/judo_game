@@ -43,8 +43,6 @@ func _physics_process(delta: float) -> void:
         else:
             velocity.x = move_toward(velocity.x, 0.0, SPEED * 6.0 * delta)
     else:
-        # Grab state: normal walking is completely disabled.
-        # Left/right/down are reserved for kuzushi and throw selection.
         velocity.x = 0.0
         held_enemy.global_position = global_position + Vector2(36 * facing, -2)
         held_enemy.velocity = Vector2.ZERO
@@ -57,21 +55,19 @@ func _physics_process(delta: float) -> void:
             _release_enemy()
 
     if held_enemy != null:
-        _update_throw_input(delta)
+        _update_throw_input()
 
     move_and_slide()
     queue_redraw()
 
-func _update_throw_input(_delta: float) -> void:
+func _update_throw_input() -> void:
     if held_enemy == null:
         return
 
-    # Rear grab: K alone is Ura-nage.
     if grabbed_from_behind and Input.is_action_just_pressed("throw_action"):
         _perform_throw("uranage")
         return
 
-    # Buffer K briefly, so K -> direction and direction -> K both work.
     if Input.is_action_just_pressed("throw_action"):
         throw_buffer = THROW_INPUT_BUFFER
 
@@ -106,8 +102,6 @@ func _update_kuzushi_input() -> void:
     if held_enemy == null or grabbed_from_behind:
         return
 
-    # For v0.2 this is visual feedback only.
-    # Later enemy types will require the correct kuzushi before a throw succeeds.
     var left := Input.is_action_pressed("move_left")
     var right := Input.is_action_pressed("move_right")
 
@@ -166,17 +160,31 @@ func _perform_throw(kind: String) -> void:
     held_enemy = null
     throw_buffer = 0.0
 
+    # The four techniques deliberately have very different "feel".
+    # Values are prototype tuning parameters, not final balance.
     match kind:
         "osoto":
-            enemy.receive_throw(Vector2(260.0 * facing, -80.0), 1.0, "OSOTO")
+            # Low, sharp forward reap. Short travel, quick ground contact.
+            enemy.receive_throw(Vector2(390.0 * facing, -115.0), 1.05, "OSOTO", 8.0 * facing, 1.0)
+            _throw_pose_kick(Vector2(-5.0 * facing, 0.0))
         "seoi":
-            enemy.receive_throw(Vector2(-330.0 * facing, -150.0), 1.5, "SEOI")
+            # Fast backward arc with a heavier slam than Osoto.
+            enemy.receive_throw(Vector2(-455.0 * facing, -315.0), 1.65, "SEOI", -11.0 * facing, 1.25)
+            _throw_pose_kick(Vector2(9.0 * facing, 2.0))
         "tomoe":
-            enemy.receive_throw(Vector2(-590.0 * facing, -250.0), 1.3, "TOMOE")
+            # Signature long-range launch. Very high horizontal momentum.
+            enemy.receive_throw(Vector2(-820.0 * facing, -285.0), 1.35, "TOMOE", -15.0 * facing, 1.55)
+            _throw_pose_kick(Vector2(14.0 * facing, 0.0))
         "uranage":
-            enemy.receive_throw(Vector2(45.0 * facing, 380.0), 2.5, "URA")
+            # Rear-grab power slam: little travel, violent downward impact.
+            enemy.receive_throw(Vector2(-115.0 * facing, -420.0), 2.7, "URA", 12.0 * facing, 1.85, true)
+            _throw_pose_kick(Vector2(8.0 * facing, 3.0))
 
     grabbed_from_behind = false
+
+func _throw_pose_kick(offset: Vector2) -> void:
+    # Tiny recoil gives the thrower some physical reaction without locking controls.
+    global_position += offset
 
 func _draw() -> void:
     draw_circle(Vector2(0, -20), 17, Color(1.0, 0.86, 0.48))
