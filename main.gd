@@ -5,7 +5,8 @@ const EnemyScript = preload("res://enemy.gd")
 const FxScript = preload("res://fx.gd")
 
 var player
-var enemy
+var enemy_a
+var enemy_b
 var camera: Camera2D
 var shake_time := 0.0
 var shake_strength := 0.0
@@ -14,19 +15,28 @@ func _ready() -> void:
     add_to_group("game_fx")
     _setup_input()
 
-    _make_ground(Vector2(1000, 500), Vector2(2600, 80))
-    _make_ground(Vector2(760, 410), Vector2(220, 24))
+    # Long flat test floor.
+    _make_ground(Vector2(800, 500), Vector2(1800, 80))
 
+    # Player.
     player = PlayerScript.new()
-    player.position = Vector2(250, 420)
+    player.position = Vector2(330, 420)
     add_child(player)
 
-    enemy = EnemyScript.new()
-    enemy.position = Vector2(520, 420)
-    enemy.facing = -1
-    add_child(enemy)
+    # Two enemies so disappearance is immediately obvious.
+    enemy_a = EnemyScript.new()
+    enemy_a.position = Vector2(560, 420)
+    enemy_a.facing = -1
+    add_child(enemy_a)
 
+    enemy_b = EnemyScript.new()
+    enemy_b.position = Vector2(850, 420)
+    enemy_b.facing = -1
+    add_child(enemy_b)
+
+    # Fixed camera for debugging. No follow logic yet.
     camera = Camera2D.new()
+    camera.position = Vector2(800, 270)
     camera.enabled = true
     add_child(camera)
 
@@ -37,19 +47,12 @@ func _process(delta: float) -> void:
         get_tree().reload_current_scene()
         return
 
-    # Camera follows the midpoint between player and thrown enemy.
-    var target := player.global_position
-    if enemy != null and is_instance_valid(enemy):
-        var dx := abs(enemy.global_position.x - player.global_position.x)
-        if enemy.state == enemy.State.THROWN and dx < 1250.0:
-            target = (player.global_position + enemy.global_position) * 0.5
-    target.y = 270.0
-
-    camera.global_position = camera.global_position.lerp(target, minf(1.0, 6.0 * delta))
-
     if shake_time > 0.0:
         shake_time -= delta
-        camera.offset = Vector2(randf_range(-shake_strength, shake_strength), randf_range(-shake_strength, shake_strength))
+        camera.offset = Vector2(
+            randf_range(-shake_strength, shake_strength),
+            randf_range(-shake_strength, shake_strength)
+        )
     else:
         camera.offset = camera.offset.lerp(Vector2.ZERO, minf(1.0, 18.0 * delta))
 
@@ -87,10 +90,10 @@ func _make_ground(pos: Vector2, size: Vector2) -> void:
 
     var poly := Polygon2D.new()
     poly.polygon = PackedVector2Array([
-        Vector2(-size.x/2.0, -size.y/2.0),
-        Vector2(size.x/2.0, -size.y/2.0),
-        Vector2(size.x/2.0, size.y/2.0),
-        Vector2(-size.x/2.0, size.y/2.0)
+        Vector2(-size.x / 2.0, -size.y / 2.0),
+        Vector2(size.x / 2.0, -size.y / 2.0),
+        Vector2(size.x / 2.0, size.y / 2.0),
+        Vector2(-size.x / 2.0, size.y / 2.0)
     ])
     poly.color = Color(0.38, 0.58, 0.33)
     body.add_child(poly)
@@ -98,11 +101,10 @@ func _make_ground(pos: Vector2, size: Vector2) -> void:
 
 func _make_ui() -> void:
     var label := Label.new()
-    label.position = Vector2(22, 18)
-    label.text = "MOVE A/D or ARROWS | JUMP SPACE | GRAB J | RESET R\nWHILE GRABBING: HOLD DIRECTION THEN K\nBACK+K TOMOE | FORWARD+K OSOTO | DOWN+K SEOI | REAR GRAB: K URA"
+    label.position = Vector2(30, 20)
+    label.text = "TEST v0.3.3\nA/D MOVE | SPACE JUMP | J GRAB | R RESET\nWHILE GRABBING: HOLD DIRECTION THEN K\nBACK+K TOMOE | FORWARD+K OSOTO | DOWN+K SEOI | REAR: K URA"
     label.add_theme_font_size_override("font_size", 18)
     label.add_theme_color_override("font_color", Color(0.08, 0.10, 0.13))
-    label.top_level = true
     add_child(label)
 
 func _setup_input() -> void:
@@ -117,6 +119,10 @@ func _setup_input() -> void:
 func _bind_keys(action: StringName, keys: Array) -> void:
     if not InputMap.has_action(action):
         InputMap.add_action(action)
+
+    # Avoid duplicate bindings on scene reload.
+    InputMap.action_erase_events(action)
+
     for keycode in keys:
         var ev := InputEventKey.new()
         ev.physical_keycode = keycode

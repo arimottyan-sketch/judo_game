@@ -80,3 +80,7 @@ Godot EngineはMIT Licenseで提供されています。
 
 ## v0.3
 Throw-feel pass: unique trajectories/spin, launch burst, motion trails, impact rings/dust, camera shake, and short hit-stop.
+
+
+## v0.3.3
+Debug-stable version: fixed camera, two guaranteed enemy spawns, simplified scene logic.

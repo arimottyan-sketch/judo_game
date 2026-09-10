@@ -137,12 +137,17 @@ func receive_throw(initial_velocity: Vector2, damage: float, technique: String, 
     _fx("request_shake", [0.3 * effect_power])
 
 func _draw() -> void:
+    # Bright outline so the enemy cannot visually blend into the background.
+    draw_circle(Vector2(0, -20), 22, Color(1.0, 1.0, 1.0))
     draw_circle(Vector2(0, -20), 18, Color(0.93, 0.79, 0.62))
+    draw_rect(Rect2(-21, -8, 42, 43), Color(1.0, 1.0, 1.0), true)
     draw_rect(Rect2(-18, -5, 36, 37), Color(0.82, 0.36, 0.34), true)
-    draw_circle(Vector2(7 * facing, -23), 2.5, Color(0.05,0.05,0.05))
-    draw_circle(Vector2(7 * facing, -16), 2.0, Color(0.05,0.05,0.05))
+    draw_circle(Vector2(7 * facing, -23), 2.5, Color(0.05, 0.05, 0.05))
+    draw_circle(Vector2(7 * facing, -16), 2.0, Color(0.05, 0.05, 0.05))
+
     if state == State.GRABBED and kuzushi_dir != 0:
-        draw_circle(Vector2(-25 * kuzushi_dir, -30), 4, Color(0.35,0.75,1.0))
-        draw_circle(Vector2(-29 * kuzushi_dir, -22), 2.5, Color(0.35,0.75,1.0))
+        draw_circle(Vector2(-25 * kuzushi_dir, -30), 4, Color(0.35, 0.75, 1.0))
+        draw_circle(Vector2(-29 * kuzushi_dir, -22), 2.5, Color(0.35, 0.75, 1.0))
+
     if state == State.THROWN:
-        draw_arc(Vector2.ZERO, 33, 0, TAU, 18, Color(1,1,1,0.72), 2.5)
+        draw_arc(Vector2.ZERO, 33, 0, TAU, 18, Color(1, 1, 1, 0.72), 2.5)
