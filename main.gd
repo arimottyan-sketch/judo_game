@@ -50,7 +50,7 @@ func _make_ground(pos: Vector2, size: Vector2) -> void:
 func _make_ui() -> void:
     var label := Label.new()
     label.position = Vector2(22, 18)
-    label.text = "A/D: 移動   SPACE: ジャンプ   J: 掴む/離す   K+方向: 投げ   R: リセット\n右向き・正面掴み:  ←+K 巴投   →+K 大外刈   ↓+K 背負投\n背後から掴む: Kで裏投（方向不問）"
+    label.text = "A/D or ARROWS: MOVE    SPACE: JUMP    J: GRAB/RELEASE    R: RESET\nWHILE GRABBING: movement is locked / LEFT-RIGHT = KUZUSHI\nFRONT GRAB: BACK+K = TOMOE    FORWARD+K = OSOTO    DOWN+K = SEOI\nREAR GRAB: K = URA"
     label.add_theme_font_size_override("font_size", 18)
     label.add_theme_color_override("font_color", Color(0.08, 0.10, 0.13))
     add_child(label)

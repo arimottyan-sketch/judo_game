@@ -11,6 +11,7 @@ var throw_name := ""
 var impact_power := 0.0
 var down_timer := 0.0
 var hp := 4.0
+var kuzushi_dir := 0
 
 func _ready() -> void:
     add_to_group("enemy")
@@ -41,7 +42,6 @@ func _physics_process(delta: float) -> void:
             state = State.NORMAL
             throw_name = ""
     elif state == State.THROWN:
-        # 空中は慣性を保つ。床についたらダウンへ。
         pass
 
     var before_vy := velocity.y
@@ -60,8 +60,6 @@ func can_be_grabbed() -> bool:
     return state == State.NORMAL or state == State.DOWN
 
 func is_player_behind(player_x: float) -> bool:
-    # facing=+1なら右が顔側、左が背中側。
-    # facing=-1なら左が顔側、右が背中側。
     var player_side := sign(player_x - global_position.x)
     return player_side == -facing
 
@@ -69,6 +67,7 @@ func begin_grab(by_player) -> void:
     holder = by_player
     state = State.GRABBED
     velocity = Vector2.ZERO
+    kuzushi_dir = 0
     collision_layer = 0
     collision_mask = 0
     queue_redraw()
@@ -76,8 +75,18 @@ func begin_grab(by_player) -> void:
 func release_grab() -> void:
     holder = null
     state = State.NORMAL
+    kuzushi_dir = 0
+    rotation = 0.0
     collision_layer = 1
     collision_mask = 1
+    queue_redraw()
+
+func set_kuzushi(direction: int) -> void:
+    if state != State.GRABBED:
+        return
+    kuzushi_dir = clampi(direction, -1, 1)
+    # Lean in the visually requested direction. This does NOT move the pair.
+    rotation = deg_to_rad(10.0 * kuzushi_dir)
     queue_redraw()
 
 func receive_throw(initial_velocity: Vector2, damage: float, technique: String) -> void:
@@ -86,6 +95,8 @@ func receive_throw(initial_velocity: Vector2, damage: float, technique: String) 
     velocity = initial_velocity
     impact_power = damage
     throw_name = technique
+    kuzushi_dir = 0
+    rotation = 0.0
     collision_layer = 1
     collision_mask = 1
     queue_redraw()
@@ -97,12 +108,15 @@ func _draw() -> void:
 
     draw_circle(Vector2(0, -20), 18, Color(0.93, 0.79, 0.62))
     draw_rect(Rect2(-18, -5, 36, 37), body_color, true)
-    # 顔を明示して前後判定が視覚的に分かるようにする。
     draw_circle(Vector2(7 * facing, -23), 2.5, Color(0.05,0.05,0.05))
     draw_circle(Vector2(7 * facing, -16), 2.0, Color(0.05,0.05,0.05))
+
+    if state == State.GRABBED and kuzushi_dir != 0:
+        # Simple sweat cue for kuzushi. No font needed.
+        draw_circle(Vector2(-25 * kuzushi_dir, -30), 4, Color(0.35,0.75,1.0))
+        draw_circle(Vector2(-29 * kuzushi_dir, -22), 2.5, Color(0.35,0.75,1.0))
 
     if state == State.THROWN:
         draw_arc(Vector2.ZERO, 32, 0, TAU, 18, Color(1,1,1,0.65), 2)
     if state == State.DOWN:
-        # 汗っぽい記号。後の崩し表示にも流用予定。
         draw_circle(Vector2(-25, -28), 4, Color(0.35,0.75,1.0))
