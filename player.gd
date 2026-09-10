@@ -3,8 +3,8 @@ extends CharacterBody2D
 const SPEED := 240.0
 const JUMP_VELOCITY := -410.0
 const GRAVITY := 1150.0
-const GRAB_RANGE := 58.0
-const THROW_INPUT_BUFFER := 0.18
+const GRAB_RANGE := 62.0
+const THROW_INPUT_BUFFER := 0.22
 
 var facing := 1
 var held_enemy = null
@@ -28,8 +28,7 @@ func _physics_process(delta: float) -> void:
     if not is_on_floor():
         velocity.y += GRAVITY * delta
 
-    if throw_buffer > 0.0:
-        throw_buffer -= delta
+    throw_buffer = maxf(0.0, throw_buffer - delta)
 
     if Input.is_action_just_pressed("jump") and is_on_floor() and held_enemy == null:
         velocity.y = JUMP_VELOCITY
@@ -43,8 +42,9 @@ func _physics_process(delta: float) -> void:
         else:
             velocity.x = move_toward(velocity.x, 0.0, SPEED * 6.0 * delta)
     else:
+        # Grab state is a separate control mode: no walking.
         velocity.x = 0.0
-        held_enemy.global_position = global_position + Vector2(36 * facing, -2)
+        held_enemy.global_position = global_position + Vector2(38 * facing, -2)
         held_enemy.velocity = Vector2.ZERO
         _update_kuzushi_input()
 
@@ -64,39 +64,40 @@ func _update_throw_input() -> void:
     if held_enemy == null:
         return
 
-    if grabbed_from_behind and Input.is_action_just_pressed("throw_action"):
-        _perform_throw("uranage")
+    if grabbed_from_behind:
+        if Input.is_action_just_pressed("throw_action"):
+            _perform_throw("uranage")
         return
 
+    # Direction first -> K: deterministic.
     if Input.is_action_just_pressed("throw_action"):
+        var technique := _technique_from_current_direction()
+        if technique != "":
+            _perform_throw(technique)
+            return
         throw_buffer = THROW_INPUT_BUFFER
 
-    var direction_just_pressed := (
-        Input.is_action_just_pressed("move_left")
-        or Input.is_action_just_pressed("move_right")
-        or Input.is_action_just_pressed("move_down")
-    )
+    # K first -> direction: short grace window.
+    if throw_buffer > 0.0:
+        if Input.is_action_just_pressed("move_left") or Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("move_down"):
+            var technique := _technique_from_current_direction()
+            if technique != "":
+                _perform_throw(technique)
 
-    var throw_requested := Input.is_action_just_pressed("throw_action") or (
-        direction_just_pressed and (Input.is_action_pressed("throw_action") or throw_buffer > 0.0)
-    )
-
-    if not throw_requested:
-        return
+func _technique_from_current_direction() -> String:
+    if Input.is_action_pressed("move_down"):
+        return "seoi"
 
     var left := Input.is_action_pressed("move_left")
     var right := Input.is_action_pressed("move_right")
-    var down := Input.is_action_pressed("move_down")
-
     var pressing_back := left if facing == 1 else right
     var pressing_forward := right if facing == 1 else left
 
-    if down:
-        _perform_throw("seoi")
-    elif pressing_back:
-        _perform_throw("tomoe")
-    elif pressing_forward:
-        _perform_throw("osoto")
+    if pressing_back:
+        return "tomoe"
+    if pressing_forward:
+        return "osoto"
+    return ""
 
 func _update_kuzushi_input() -> void:
     if held_enemy == null or grabbed_from_behind:
@@ -104,7 +105,6 @@ func _update_kuzushi_input() -> void:
 
     var left := Input.is_action_pressed("move_left")
     var right := Input.is_action_pressed("move_right")
-
     var pressing_back := left if facing == 1 else right
     var pressing_forward := right if facing == 1 else left
 
@@ -118,12 +118,13 @@ func _update_kuzushi_input() -> void:
 func _try_grab() -> void:
     var best = null
     var best_dist := INF
+
     for candidate in get_tree().get_nodes_in_group("enemy"):
         if not candidate.can_be_grabbed():
             continue
         var dx: float = candidate.global_position.x - global_position.x
         var dy: float = abs(candidate.global_position.y - global_position.y)
-        if dy > 50.0:
+        if dy > 52.0:
             continue
         if sign(dx) != facing:
             continue
@@ -138,10 +139,9 @@ func _try_grab() -> void:
     held_enemy = best
     grabbed_from_behind = held_enemy.is_player_behind(global_position.x)
     held_enemy.begin_grab(self)
-    held_enemy.global_position = global_position + Vector2(36 * facing, -2)
+    held_enemy.global_position = global_position + Vector2(38 * facing, -2)
     velocity.x = 0.0
     throw_buffer = 0.0
-    queue_redraw()
 
 func _release_enemy() -> void:
     if held_enemy == null:
@@ -160,31 +160,17 @@ func _perform_throw(kind: String) -> void:
     held_enemy = null
     throw_buffer = 0.0
 
-    # The four techniques deliberately have very different "feel".
-    # Values are prototype tuning parameters, not final balance.
     match kind:
         "osoto":
-            # Low, sharp forward reap. Short travel, quick ground contact.
-            enemy.receive_throw(Vector2(390.0 * facing, -115.0), 1.05, "OSOTO", 8.0 * facing, 1.0)
-            _throw_pose_kick(Vector2(-5.0 * facing, 0.0))
+            enemy.receive_throw(Vector2(360.0 * facing, -100.0), 1.0, "OSOTO", 7.0 * facing, 0.95)
         "seoi":
-            # Fast backward arc with a heavier slam than Osoto.
-            enemy.receive_throw(Vector2(-455.0 * facing, -315.0), 1.65, "SEOI", -11.0 * facing, 1.25)
-            _throw_pose_kick(Vector2(9.0 * facing, 2.0))
+            enemy.receive_throw(Vector2(-430.0 * facing, -300.0), 1.5, "SEOI", -10.0 * facing, 1.15)
         "tomoe":
-            # Signature long-range launch. Very high horizontal momentum.
-            enemy.receive_throw(Vector2(-820.0 * facing, -285.0), 1.35, "TOMOE", -15.0 * facing, 1.55)
-            _throw_pose_kick(Vector2(14.0 * facing, 0.0))
+            enemy.receive_throw(Vector2(-690.0 * facing, -250.0), 1.3, "TOMOE", -13.0 * facing, 1.45)
         "uranage":
-            # Rear-grab power slam: little travel, violent downward impact.
-            enemy.receive_throw(Vector2(-115.0 * facing, -420.0), 2.7, "URA", 12.0 * facing, 1.85, true)
-            _throw_pose_kick(Vector2(8.0 * facing, 3.0))
+            enemy.receive_throw(Vector2(-100.0 * facing, -380.0), 2.4, "URA", 10.0 * facing, 1.7, true)
 
     grabbed_from_behind = false
-
-func _throw_pose_kick(offset: Vector2) -> void:
-    # Tiny recoil gives the thrower some physical reaction without locking controls.
-    global_position += offset
 
 func _draw() -> void:
     draw_circle(Vector2(0, -20), 17, Color(1.0, 0.86, 0.48))
