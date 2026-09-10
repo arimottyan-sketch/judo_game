@@ -20,8 +20,8 @@ var air_time := 0.0
 
 func _ready() -> void:
     add_to_group("enemy")
-    collision_layer = 1
-    collision_mask = 1
+    collision_layer = 4
+    collision_mask = 2
 
     var collider := CollisionShape2D.new()
     var shape := CapsuleShape2D.new()
@@ -107,8 +107,8 @@ func release_grab() -> void:
     holder = null
     state = State.NORMAL
     kuzushi_dir = 0
-    collision_layer = 1
-    collision_mask = 1
+    collision_layer = 4
+    collision_mask = 2
     rotation = 0.0
 
 func set_kuzushi(direction: int) -> void:
@@ -124,8 +124,8 @@ func receive_throw(initial_velocity: Vector2, damage: float, technique: String, 
     velocity = initial_velocity
     impact_power = damage
     throw_name = technique
-    collision_layer = 1
-    collision_mask = 1
+    collision_layer = 4
+    collision_mask = 2
     kuzushi_dir = 0
     rotation = 0.0
     spin_speed = angular_speed

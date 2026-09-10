@@ -14,7 +14,7 @@ var throw_buffer := 0.0
 func _ready() -> void:
     add_to_group("player")
     collision_layer = 1
-    collision_mask = 1
+    collision_mask = 2
 
     var collider := CollisionShape2D.new()
     var shape := CapsuleShape2D.new()

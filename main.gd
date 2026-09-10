@@ -81,6 +81,8 @@ func request_shake(power: float) -> void:
 func _make_ground(pos: Vector2, size: Vector2) -> void:
     var body := StaticBody2D.new()
     body.position = pos
+    body.collision_layer = 2
+    body.collision_mask = 0
 
     var shape := CollisionShape2D.new()
     var rect := RectangleShape2D.new()

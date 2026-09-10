@@ -84,3 +84,7 @@ Throw-feel pass: unique trajectories/spin, launch burst, motion trails, impact r
 
 ## v0.3.3
 Debug-stable version: fixed camera, two guaranteed enemy spawns, simplified scene logic.
+
+
+## v0.3.4
+Fixed throw horizontal velocity being killed by immediate collision with the player. Player/enemy now collide with ground only during this prototype stage.
