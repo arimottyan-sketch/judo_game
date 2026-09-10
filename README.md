@@ -96,3 +96,7 @@ Added airborne smoke trails. Tomoe produces the longest/strongest-looking trail,
 
 ## v0.3.6
 Replaced long text HUD with compact in-engine keycap/action icons using CanvasLayer. Increased smoke size, opacity, lifetime, and spawn rate.
+
+
+## v0.3.7
+HUD fixed by drawing with Node2D directly under CanvasLayer. Smoke now spawns directly from thrown enemies via smoke.gd instead of routing through the main scene group.

@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 const GRAVITY := 1150.0
+const SmokeScript = preload("res://smoke.gd")
 
 enum State { NORMAL, GRABBED, THROWN, DOWN }
 
@@ -68,12 +69,12 @@ func _physics_process(delta: float) -> void:
         # Smoke tail: more frequent and longer-looking for fast throws.
         # Ura-nage intentionally produces much less airborne smoke.
         var smoke_allowed := throw_name != "URA"
-        if smoke_allowed and smoke_timer <= 0.0 and speed > 300.0:
+        if smoke_allowed and smoke_timer <= 0.0 and speed > 180.0:
             var interval := 0.075
             if throw_name == "TOMOE":
-                interval = 0.028
+                interval = 0.035
             elif throw_name == "SEOI":
-                interval = 0.042
+                interval = 0.048
             elif throw_name == "OSOTO":
                 interval = 0.060
 
@@ -82,7 +83,10 @@ func _physics_process(delta: float) -> void:
             # Spawn slightly behind the enemy, so the trail reads clearly.
             var dir := velocity.normalized()
             var smoke_pos := global_position - dir * 24.0 + Vector2(randf_range(-3.0, 3.0), randf_range(-3.0, 3.0))
-            _fx("spawn_smoke", [smoke_pos, dir, fx_power])
+            var smoke = SmokeScript.new()
+            get_tree().current_scene.add_child(smoke)
+            smoke.global_position = smoke_pos
+            smoke.setup(dir, fx_power)
 
     var before := velocity
     move_and_slide()

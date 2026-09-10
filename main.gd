@@ -69,12 +69,6 @@ func spawn_trail(pos: Vector2, direction: Vector2, power: float) -> void:
     fx.global_position = pos
     fx.setup("trail", direction, power, 0.18)
 
-func spawn_smoke(pos: Vector2, direction: Vector2, power: float) -> void:
-    var fx = FxScript.new()
-    add_child(fx)
-    fx.global_position = pos
-    fx.setup("smoke", direction, power, 0.68)
-
 func spawn_impact(pos: Vector2, power: float) -> void:
     var fx = FxScript.new()
     add_child(fx)
@@ -110,10 +104,10 @@ func _make_ground(pos: Vector2, size: Vector2) -> void:
 
 func _make_ui() -> void:
     var layer := CanvasLayer.new()
-    layer.layer = 20
+    layer.layer = 50
     add_child(layer)
 
-    var hud = HudScript.new()
+    var hud := HudScript.new()
     layer.add_child(hud)
 
 
