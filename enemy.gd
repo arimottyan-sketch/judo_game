@@ -15,6 +15,7 @@ var kuzushi_dir := 0
 var spin_speed := 0.0
 var fx_power := 1.0
 var trail_timer := 0.0
+var smoke_timer := 0.0
 var force_slam := false
 var air_time := 0.0
 
@@ -56,9 +57,32 @@ func _physics_process(delta: float) -> void:
             velocity.y += 1200.0 * delta
 
         trail_timer -= delta
-        if trail_timer <= 0.0 and velocity.length() > 320.0:
-            trail_timer = 0.065
+        smoke_timer -= delta
+
+        var speed := velocity.length()
+
+        if trail_timer <= 0.0 and speed > 320.0:
+            trail_timer = 0.060
             _fx("spawn_trail", [global_position, velocity.normalized(), fx_power])
+
+        # Smoke tail: more frequent and longer-looking for fast throws.
+        # Ura-nage intentionally produces much less airborne smoke.
+        var smoke_allowed := throw_name != "URA"
+        if smoke_allowed and smoke_timer <= 0.0 and speed > 300.0:
+            var interval := 0.075
+            if throw_name == "TOMOE":
+                interval = 0.045
+            elif throw_name == "SEOI":
+                interval = 0.060
+            elif throw_name == "OSOTO":
+                interval = 0.085
+
+            smoke_timer = interval
+
+            # Spawn slightly behind the enemy, so the trail reads clearly.
+            var dir := velocity.normalized()
+            var smoke_pos := global_position - dir * 24.0 + Vector2(randf_range(-3.0, 3.0), randf_range(-3.0, 3.0))
+            _fx("spawn_smoke", [smoke_pos, dir, fx_power])
 
     var before := velocity
     move_and_slide()
@@ -133,6 +157,7 @@ func receive_throw(initial_velocity: Vector2, damage: float, technique: String, 
     force_slam = slam_mode
     air_time = 0.0
     trail_timer = 0.0
+    smoke_timer = 0.0
     _fx("spawn_launch", [global_position, initial_velocity.normalized(), effect_power])
     _fx("request_shake", [0.3 * effect_power])
 

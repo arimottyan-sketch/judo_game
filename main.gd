@@ -68,6 +68,12 @@ func spawn_trail(pos: Vector2, direction: Vector2, power: float) -> void:
     fx.global_position = pos
     fx.setup("trail", direction, power, 0.18)
 
+func spawn_smoke(pos: Vector2, direction: Vector2, power: float) -> void:
+    var fx = FxScript.new()
+    add_child(fx)
+    fx.global_position = pos
+    fx.setup("smoke", direction, power, 0.42)
+
 func spawn_impact(pos: Vector2, power: float) -> void:
     var fx = FxScript.new()
     add_child(fx)

@@ -88,3 +88,7 @@ Debug-stable version: fixed camera, two guaranteed enemy spawns, simplified scen
 
 ## v0.3.4
 Fixed throw horizontal velocity being killed by immediate collision with the player. Player/enemy now collide with ground only during this prototype stage.
+
+
+## v0.3.5
+Added airborne smoke trails. Tomoe produces the longest/strongest-looking trail, Seoi medium, Osoto short, Ura almost none in the air.
